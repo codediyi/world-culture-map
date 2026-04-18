@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>世界文化地图</title>
+    <link rel="preconnect" href="https://images.unsplash.com" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <section class="globe-area" aria-label="可交互世界地图">
+        <div class="topbar">
+          <div>
+            <p class="eyebrow">世界文化地图</p>
+            <h1>点亮一片土地，收藏一段声音、一首诗、一部影像。</h1>
+          </div>
+          <button class="ghost-button" id="spinToggle" type="button" aria-pressed="true">暂停旋转</button>
+        </div>
+
+        <div class="globe-layout">
+          <div class="globe-stage">
+            <canvas id="globe" width="960" height="960" aria-label="可旋转地球"></canvas>
+            <div class="globe-tooltip" id="globeTooltip" role="status" aria-live="polite"></div>
+            <div class="hint">拖拽旋转，点击真实国家边界或大洲标记</div>
+          </div>
+
+          <aside class="region-panel" aria-live="polite">
+            <img id="regionImage" alt="" />
+            <p class="eyebrow" id="regionType">大洲</p>
+            <h2 id="regionName">亚洲</h2>
+            <p id="regionSummary"></p>
+            <dl class="facts" id="regionFacts"></dl>
+          </aside>
+        </div>
+      </section>
+
+      <section class="library-area" aria-label="内容搜索">
+        <div class="library-head">
+          <div>
+            <p class="eyebrow">影像、诗词、音乐、电影</p>
+            <h2>用搜索把世界慢慢读完</h2>
+          </div>
+          <label class="search-box">
+            <span>搜索</span>
+            <input id="searchInput" type="search" placeholder="输入国家、地区、作品、作者或关键词" />
+          </label>
+        </div>
+
+        <div class="filters" role="list" aria-label="内容类型筛选">
+          <button class="filter active" type="button" data-filter="all">全部</button>
+          <button class="filter" type="button" data-filter="documentary">纪录片</button>
+          <button class="filter" type="button" data-filter="poetry">诗词</button>
+          <button class="filter" type="button" data-filter="music">音乐</button>
+          <button class="filter" type="button" data-filter="film">电影</button>
+        </div>
+
+        <div class="content-grid" id="contentGrid"></div>
+      </section>
+    </main>
+
+    <script src="vendor/d3.min.js"></script>
+    <script src="vendor/topojson-client.min.js"></script>
+    <script src="data/world-data.js"></script>
+    <script src="data/country-content.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>
