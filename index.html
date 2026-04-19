@@ -9,6 +9,34 @@
   </head>
   <body>
     <main class="app-shell">
+      <section class="solar-area" id="solarSystem" aria-label="动态太阳系">
+        <canvas id="solarCanvas" width="1600" height="900" aria-label="可点击太阳系"></canvas>
+        <div class="solar-copy">
+          <p class="eyebrow">太阳系入口</p>
+          <h1>从太阳系出发，点击地球进入世界文化地图。</h1>
+          <p>其它行星会进入单独的行星页面，不显示国家和大洲。</p>
+        </div>
+        <div class="solar-hint" id="solarHint">点击一颗行星</div>
+      </section>
+
+      <section class="planet-area is-hidden" id="planetArea" aria-label="行星详情">
+        <div class="planet-layout">
+          <div class="planet-stage">
+            <canvas id="planetCanvas" width="960" height="960" aria-label="动态行星"></canvas>
+          </div>
+          <aside class="planet-panel">
+            <p class="eyebrow" id="planetType">行星</p>
+            <h2 id="planetName">火星</h2>
+            <p id="planetSummary"></p>
+            <dl class="facts" id="planetFacts"></dl>
+            <div class="planet-actions">
+              <button class="ghost-button" id="backToSolar" type="button">返回太阳系</button>
+              <button class="ghost-button" id="enterEarth" type="button">进入地球</button>
+            </div>
+          </aside>
+        </div>
+      </section>
+
       <section class="globe-area" aria-label="可交互世界地图">
         <div class="topbar">
           <div>

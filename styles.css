@@ -48,6 +48,119 @@ button {
   min-height: 100vh;
 }
 
+.solar-area {
+  position: relative;
+  min-height: 100vh;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  background:
+    radial-gradient(circle at 18% 50%, rgba(230, 195, 92, 0.18), transparent 22%),
+    linear-gradient(135deg, #050908 0%, #07110f 45%, #0b1517 100%);
+  border-bottom: 1px solid var(--line);
+}
+
+#solarCanvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.solar-copy {
+  position: relative;
+  z-index: 2;
+  width: min(760px, calc(100% - 32px));
+  justify-self: start;
+  margin-left: clamp(16px, 6vw, 88px);
+  pointer-events: none;
+}
+
+.solar-copy h1 {
+  max-width: 720px;
+}
+
+.solar-copy p:last-child {
+  max-width: 520px;
+  color: var(--muted);
+  line-height: 1.7;
+}
+
+.solar-hint {
+  position: absolute;
+  z-index: 3;
+  right: clamp(16px, 4vw, 56px);
+  bottom: 24px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(8, 12, 11, 0.72);
+  color: var(--muted);
+  padding: 10px 14px;
+  backdrop-filter: blur(12px);
+}
+
+.planet-area {
+  min-height: 92vh;
+  padding: 36px clamp(16px, 4vw, 56px);
+  background:
+    radial-gradient(circle at 30% 40%, rgba(124, 199, 216, 0.13), transparent 28%),
+    rgba(8, 12, 11, 0.95);
+  border-bottom: 1px solid var(--line);
+}
+
+.planet-area.is-hidden {
+  display: none;
+}
+
+.planet-layout {
+  max-width: 1440px;
+  min-height: calc(92vh - 72px);
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 410px);
+  gap: clamp(18px, 4vw, 48px);
+  align-items: center;
+}
+
+.planet-stage {
+  display: grid;
+  place-items: center;
+}
+
+#planetCanvas {
+  width: min(68vw, 680px);
+  max-width: 100%;
+  aspect-ratio: 1;
+  height: auto;
+  display: block;
+  filter: drop-shadow(0 38px 70px rgba(0, 0, 0, 0.5));
+}
+
+.planet-panel {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel);
+  backdrop-filter: blur(16px);
+  padding: 18px;
+}
+
+.planet-panel h2 {
+  margin-bottom: 12px;
+}
+
+#planetSummary {
+  color: var(--muted);
+  line-height: 1.7;
+}
+
+.planet-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 20px;
+}
+
 .globe-area {
   min-height: 94vh;
   padding: 24px clamp(16px, 4vw, 56px) 32px;
@@ -393,11 +506,13 @@ h2 {
   }
 
   .globe-layout,
+  .planet-layout,
   .content-grid {
     grid-template-columns: 1fr;
   }
 
-  #globe {
+  #globe,
+  #planetCanvas {
     width: min(92vw, 620px);
   }
 
@@ -410,6 +525,11 @@ h2 {
   .topbar,
   .library-head {
     display: grid;
+  }
+
+  .solar-copy {
+    align-self: start;
+    margin: 84px 16px 0;
   }
 
   .topbar-actions {

@@ -92,6 +92,121 @@ const typeLabels = {
   film: "电影",
 };
 
+const solarPlanets = [
+  {
+    id: "mercury",
+    name: "水星",
+    orbit: 96,
+    radius: 7,
+    speed: 0.00048,
+    color: "#b8afa3",
+    summary: "距离太阳最近的岩石行星，表面温差极大。",
+    facts: [
+      ["类型", "岩石行星"],
+      ["特点", "最靠近太阳，几乎没有大气"],
+      ["页面", "行星视图，不包含国家和大洲"],
+    ],
+  },
+  {
+    id: "venus",
+    name: "金星",
+    orbit: 142,
+    radius: 12,
+    speed: 0.00034,
+    color: "#d8b36a",
+    summary: "被浓厚云层覆盖的行星，常被称为地球的近邻。",
+    facts: [
+      ["类型", "岩石行星"],
+      ["特点", "浓厚大气，温室效应强"],
+      ["页面", "行星视图，不包含国家和大洲"],
+    ],
+  },
+  {
+    id: "earth",
+    name: "地球",
+    orbit: 194,
+    radius: 14,
+    speed: 0.00027,
+    color: "#4ba6d8",
+    summary: "点击地球进入当前的世界文化地图。",
+    facts: [
+      ["类型", "岩石行星"],
+      ["特点", "海洋、陆地、大气与生命"],
+      ["页面", "进入真实国家边界地球模型"],
+    ],
+  },
+  {
+    id: "mars",
+    name: "火星",
+    orbit: 250,
+    radius: 11,
+    speed: 0.00022,
+    color: "#c46a4a",
+    summary: "红色岩石行星，拥有峡谷、火山和极冠。",
+    facts: [
+      ["类型", "岩石行星"],
+      ["特点", "红色地表、稀薄大气、极地冰盖"],
+      ["页面", "行星视图，不包含国家和大洲"],
+    ],
+  },
+  {
+    id: "jupiter",
+    name: "木星",
+    orbit: 332,
+    radius: 28,
+    speed: 0.00012,
+    color: "#d6b08a",
+    summary: "太阳系最大的气态巨行星，拥有醒目的云带和大红斑。",
+    facts: [
+      ["类型", "气态巨行星"],
+      ["特点", "体积最大，云带明显"],
+      ["页面", "行星视图，不包含国家和大洲"],
+    ],
+  },
+  {
+    id: "saturn",
+    name: "土星",
+    orbit: 430,
+    radius: 24,
+    speed: 0.000095,
+    color: "#d9c38f",
+    summary: "以宽阔明亮的行星环闻名的气态巨行星。",
+    facts: [
+      ["类型", "气态巨行星"],
+      ["特点", "行星环显著"],
+      ["页面", "行星视图，不包含国家和大洲"],
+    ],
+  },
+  {
+    id: "uranus",
+    name: "天王星",
+    orbit: 522,
+    radius: 19,
+    speed: 0.000068,
+    color: "#8ed5d3",
+    summary: "浅蓝绿色的冰巨行星，自转轴倾斜非常明显。",
+    facts: [
+      ["类型", "冰巨行星"],
+      ["特点", "自转轴倾斜，色调清冷"],
+      ["页面", "行星视图，不包含国家和大洲"],
+    ],
+  },
+  {
+    id: "neptune",
+    name: "海王星",
+    orbit: 604,
+    radius: 19,
+    speed: 0.000054,
+    color: "#4d74d8",
+    summary: "深蓝色冰巨行星，拥有强风和遥远轨道。",
+    facts: [
+      ["类型", "冰巨行星"],
+      ["特点", "深蓝色、强风、轨道遥远"],
+      ["页面", "行星视图，不包含国家和大洲"],
+    ],
+  },
+];
+
 const countryContent = window.COUNTRY_CONTENT || [];
 const countryById = new Map(countryContent.map((country) => [country.id, country]));
 const linkedHighlightGroups = [new Set(["156", "158"])];
@@ -105,12 +220,23 @@ const countries = topojson
 
 const canvas = document.querySelector("#globe");
 const ctx = canvas.getContext("2d");
+const solarCanvas = document.querySelector("#solarCanvas");
+const solarCtx = solarCanvas.getContext("2d");
+const planetCanvas = document.querySelector("#planetCanvas");
+const planetCtx = planetCanvas.getContext("2d");
 const spinToggle = document.querySelector("#spinToggle");
 const searchInput = document.querySelector("#searchInput");
 const contentGrid = document.querySelector("#contentGrid");
 const globeTooltip = document.querySelector("#globeTooltip");
+const solarHint = document.querySelector("#solarHint");
+const planetArea = document.querySelector("#planetArea");
+const backToSolar = document.querySelector("#backToSolar");
+const enterEarth = document.querySelector("#enterEarth");
 const filters = document.querySelectorAll(".filter");
 
+let solarHits = [];
+let stars = [];
+let activePlanet = solarPlanets.find((planet) => planet.id === "mars");
 let selectedRegion = continents[0];
 let selectedCountry = null;
 let hoveredCountryId = null;
@@ -123,6 +249,201 @@ let projection = d3.geoOrthographic();
 let path = d3.geoPath(projection, ctx);
 let continentHits = [];
 let countryScreenPoints = [];
+let planetSpin = 0;
+
+function resizeSceneCanvas(sceneCanvas) {
+  const rect = sceneCanvas.getBoundingClientRect();
+  const ratio = window.devicePixelRatio || 1;
+  sceneCanvas.width = Math.max(320, Math.round(rect.width * ratio));
+  sceneCanvas.height = Math.max(320, Math.round(rect.height * ratio));
+  const sceneCtx = sceneCanvas.getContext("2d");
+  sceneCtx.setTransform(ratio, 0, 0, ratio, 0, 0);
+}
+
+function resizeSolarCanvas() {
+  resizeSceneCanvas(solarCanvas);
+  const rect = solarCanvas.getBoundingClientRect();
+  stars = Array.from({ length: 150 }, (_, index) => {
+    const seed = Math.sin(index * 124.67) * 10000;
+    const seed2 = Math.sin(index * 48.31) * 10000;
+    return {
+      x: (seed - Math.floor(seed)) * rect.width,
+      y: (seed2 - Math.floor(seed2)) * rect.height,
+      r: 0.6 + ((index * 17) % 10) / 12,
+      a: 0.25 + ((index * 23) % 10) / 18,
+    };
+  });
+}
+
+function resizePlanetCanvas() {
+  resizeSceneCanvas(planetCanvas);
+}
+
+function drawSolarSystem(time) {
+  const rect = solarCanvas.getBoundingClientRect();
+  const width = rect.width;
+  const height = rect.height;
+  const sun = {
+    x: Math.max(118, width * 0.18),
+    y: height * 0.54,
+  };
+  const orbitScale = Math.min(width / 980, height / 760);
+
+  solarCtx.clearRect(0, 0, width, height);
+  solarCtx.fillStyle = "#050908";
+  solarCtx.fillRect(0, 0, width, height);
+
+  for (const star of stars) {
+    solarCtx.beginPath();
+    solarCtx.arc(star.x, star.y, star.r, 0, Math.PI * 2);
+    solarCtx.fillStyle = `rgba(246,241,232,${star.a})`;
+    solarCtx.fill();
+  }
+
+  const sunGlow = solarCtx.createRadialGradient(sun.x, sun.y, 12, sun.x, sun.y, 132 * orbitScale);
+  sunGlow.addColorStop(0, "rgba(255,220,112,1)");
+  sunGlow.addColorStop(0.32, "rgba(230,121,67,0.62)");
+  sunGlow.addColorStop(1, "rgba(230,121,67,0)");
+  solarCtx.beginPath();
+  solarCtx.arc(sun.x, sun.y, 132 * orbitScale, 0, Math.PI * 2);
+  solarCtx.fillStyle = sunGlow;
+  solarCtx.fill();
+
+  solarCtx.beginPath();
+  solarCtx.arc(sun.x, sun.y, 42 * orbitScale, 0, Math.PI * 2);
+  solarCtx.fillStyle = "#f0c85c";
+  solarCtx.fill();
+
+  solarHits = [];
+  for (const planet of solarPlanets) {
+    const orbit = planet.orbit * orbitScale;
+    const radius = Math.max(planet.radius * orbitScale, planet.id === "earth" ? 11 : 6);
+    const angle = time * planet.speed + planet.orbit * 0.017;
+    const x = sun.x + Math.cos(angle) * orbit;
+    const y = sun.y + Math.sin(angle) * orbit * 0.42;
+
+    solarCtx.beginPath();
+    solarCtx.ellipse(sun.x, sun.y, orbit, orbit * 0.42, 0, 0, Math.PI * 2);
+    solarCtx.strokeStyle = "rgba(255,255,255,0.13)";
+    solarCtx.lineWidth = 1;
+    solarCtx.stroke();
+
+    drawSolarPlanet(planet, x, y, radius);
+    solarHits.push({ planet, x, y, radius: radius + 10 });
+  }
+}
+
+function drawSolarPlanet(planet, x, y, radius) {
+  const gradient = solarCtx.createRadialGradient(x - radius * 0.35, y - radius * 0.35, 2, x, y, radius);
+  gradient.addColorStop(0, "#ffffff");
+  gradient.addColorStop(0.22, planet.color);
+  gradient.addColorStop(1, "rgba(0,0,0,0.82)");
+  solarCtx.beginPath();
+  solarCtx.arc(x, y, radius, 0, Math.PI * 2);
+  solarCtx.fillStyle = gradient;
+  solarCtx.fill();
+
+  if (planet.id === "saturn") {
+    solarCtx.beginPath();
+    solarCtx.ellipse(x, y, radius * 1.9, radius * 0.52, -0.25, 0, Math.PI * 2);
+    solarCtx.strokeStyle = "rgba(236,219,163,0.82)";
+    solarCtx.lineWidth = 2;
+    solarCtx.stroke();
+  }
+
+  if (planet.id === "earth") {
+    solarCtx.beginPath();
+    solarCtx.arc(x, y, radius + 7, 0, Math.PI * 2);
+    solarCtx.strokeStyle = "rgba(95,214,162,0.75)";
+    solarCtx.lineWidth = 2;
+    solarCtx.stroke();
+  }
+
+  solarCtx.font = "700 14px Inter, sans-serif";
+  solarCtx.fillStyle = "rgba(246,241,232,0.9)";
+  solarCtx.fillText(planet.name, x + radius + 8, y + 5);
+}
+
+function showPlanet(planet) {
+  activePlanet = planet;
+  document.querySelector("#planetName").textContent = planet.name;
+  document.querySelector("#planetSummary").textContent = planet.summary;
+  document.querySelector("#planetFacts").innerHTML = planet.facts
+    .map(
+      ([label, value]) =>
+        `<dt data-fact-label="${escapeHtml(label)}">${escapeHtml(label)}</dt><dd data-fact-value="${escapeHtml(label)}">${escapeHtml(value)}</dd>`,
+    )
+    .join("");
+  planetArea.classList.remove("is-hidden");
+  resizePlanetCanvas();
+  planetArea.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+function drawPlanetDetail() {
+  const rect = planetCanvas.getBoundingClientRect();
+  const size = rect.width;
+  const center = size / 2;
+  const radius = size * 0.33;
+  const planet = activePlanet;
+  planetCtx.clearRect(0, 0, size, size);
+
+  const glow = planetCtx.createRadialGradient(center, center, radius * 0.4, center, center, radius * 1.55);
+  glow.addColorStop(0, `${planet.color}66`);
+  glow.addColorStop(1, "rgba(0,0,0,0)");
+  planetCtx.beginPath();
+  planetCtx.arc(center, center, radius * 1.55, 0, Math.PI * 2);
+  planetCtx.fillStyle = glow;
+  planetCtx.fill();
+
+  const body = planetCtx.createRadialGradient(
+    center - radius * 0.35,
+    center - radius * 0.4,
+    radius * 0.08,
+    center,
+    center,
+    radius,
+  );
+  body.addColorStop(0, "#ffffff");
+  body.addColorStop(0.24, planet.color);
+  body.addColorStop(1, "rgba(0,0,0,0.82)");
+  planetCtx.beginPath();
+  planetCtx.arc(center, center, radius, 0, Math.PI * 2);
+  planetCtx.fillStyle = body;
+  planetCtx.fill();
+
+  planetCtx.save();
+  planetCtx.beginPath();
+  planetCtx.arc(center, center, radius, 0, Math.PI * 2);
+  planetCtx.clip();
+  for (let i = -5; i <= 5; i += 1) {
+    const y = center + i * radius * 0.18;
+    const offset = Math.sin(planetSpin + i) * radius * 0.08;
+    planetCtx.beginPath();
+    planetCtx.ellipse(center + offset, y, radius * 0.95, radius * 0.055, 0, 0, Math.PI * 2);
+    planetCtx.fillStyle = "rgba(255,255,255,0.11)";
+    planetCtx.fill();
+  }
+  planetCtx.restore();
+
+  if (planet.id === "saturn") {
+    planetCtx.beginPath();
+    planetCtx.ellipse(center, center, radius * 1.55, radius * 0.32, -0.22, 0, Math.PI * 2);
+    planetCtx.strokeStyle = "rgba(236,219,163,0.8)";
+    planetCtx.lineWidth = Math.max(3, radius * 0.035);
+    planetCtx.stroke();
+  }
+
+  planetSpin += 0.018;
+}
+
+function enterEarthView() {
+  planetArea.classList.add("is-hidden");
+  document.querySelector(".globe-area").scrollIntoView({ behavior: "smooth", block: "start" });
+  window.setTimeout(() => {
+    resizeCanvas();
+    drawGlobe();
+  }, 260);
+}
 
 function resizeCanvas() {
   const rect = canvas.getBoundingClientRect();
@@ -475,7 +796,19 @@ function clearTooltip() {
   globeTooltip.classList.remove("visible");
 }
 
+function solarPlanetAtPoint(clientX, clientY) {
+  const rect = solarCanvas.getBoundingClientRect();
+  const x = clientX - rect.left;
+  const y = clientY - rect.top;
+  return solarHits.find((hit) => Math.hypot(hit.x - x, hit.y - y) <= hit.radius)?.planet || null;
+}
+
 function animate() {
+  const now = performance.now();
+  drawSolarSystem(now);
+  if (!planetArea.classList.contains("is-hidden")) {
+    drawPlanetDetail();
+  }
   if (isSpinning && !isDragging) {
     rotation[0] -= 0.08;
   }
@@ -515,9 +848,41 @@ canvas.addEventListener("pointerleave", () => {
   clearTooltip();
 });
 
+solarCanvas.addEventListener("pointermove", (event) => {
+  const planet = solarPlanetAtPoint(event.clientX, event.clientY);
+  solarCanvas.style.cursor = planet ? "pointer" : "default";
+  solarHint.textContent = planet
+    ? planet.id === "earth"
+      ? "点击地球进入世界文化地图"
+      : `点击${planet.name}进入行星页面`
+    : "点击一颗行星";
+});
+
+solarCanvas.addEventListener("pointerleave", () => {
+  solarCanvas.style.cursor = "default";
+  solarHint.textContent = "点击一颗行星";
+});
+
+solarCanvas.addEventListener("click", (event) => {
+  const planet = solarPlanetAtPoint(event.clientX, event.clientY);
+  if (!planet) return;
+  if (planet.id === "earth") {
+    enterEarthView();
+    return;
+  }
+  showPlanet(planet);
+});
+
 spinToggle.addEventListener("click", () => {
   setSpinning(!isSpinning);
 });
+
+backToSolar.addEventListener("click", () => {
+  planetArea.classList.add("is-hidden");
+  document.querySelector("#solarSystem").scrollIntoView({ behavior: "smooth", block: "start" });
+});
+
+enterEarth.addEventListener("click", enterEarthView);
 
 filters.forEach((button) => {
   button.addEventListener("click", () => {
@@ -533,6 +898,8 @@ searchInput.addEventListener("input", () => {
   focusCountryFromSearch();
 });
 window.addEventListener("resize", () => {
+  resizeSolarCanvas();
+  if (!planetArea.classList.contains("is-hidden")) resizePlanetCanvas();
   resizeCanvas();
   drawGlobe();
 });
@@ -570,6 +937,7 @@ function focusCountryFromSearch() {
   selectCountryById(country.id);
 }
 
+resizeSolarCanvas();
 resizeCanvas();
 selectContinent(continents[0]);
 animate();
