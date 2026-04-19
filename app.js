@@ -95,6 +95,10 @@ const typeLabels = {
 const countryContent = window.COUNTRY_CONTENT || [];
 const countryById = new Map(countryContent.map((country) => [country.id, country]));
 const linkedHighlightGroups = [new Set(["156", "158"])];
+const timezoneOverrides = {
+  156: 8,
+  158: 8,
+};
 const countries = topojson
   .feature(window.WORLD_TOPOLOGY, window.WORLD_TOPOLOGY.objects.countries)
   .features.filter((feature) => countryById.has(String(feature.id).padStart(3, "0")));
@@ -308,14 +312,15 @@ function setSpinning(value) {
 function describeLocalTime(country) {
   const [, lon = 0] = country.latlng || [];
   const beijingNow = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Shanghai" }));
-  const approximateOffset = Math.max(-12, Math.min(14, Math.round(lon / 15)));
-  const diffHours = approximateOffset - 8;
+  const utcOffset = timezoneOverrides[country.id] ?? Math.max(-12, Math.min(14, Math.round(lon / 15)));
+  const diffHours = utcOffset - 8;
   const localTime = new Date(beijingNow.getTime() + diffHours * 60 * 60 * 1000);
   const hour = localTime.getHours();
   const minute = String(localTime.getMinutes()).padStart(2, "0");
   const dayState = hour >= 6 && hour < 18 ? "白天" : "夜间";
-  const sign = approximateOffset >= 0 ? "+" : "";
-  return `${dayState} ${String(hour).padStart(2, "0")}:${minute}，约 UTC${sign}${approximateOffset}`;
+  const sign = utcOffset >= 0 ? "+" : "";
+  const label = timezoneOverrides[country.id] === undefined ? "约 " : "";
+  return `${dayState} ${String(hour).padStart(2, "0")}:${minute}，${label}UTC${sign}${utcOffset}`;
 }
 
 function updatePanel(panel) {
