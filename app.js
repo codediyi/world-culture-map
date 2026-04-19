@@ -284,10 +284,10 @@ function drawSolarSystem(time) {
   const width = rect.width;
   const height = rect.height;
   const sun = {
-    x: Math.max(118, width * 0.18),
-    y: height * 0.54,
+    x: width * 0.5,
+    y: height * 0.56,
   };
-  const orbitScale = Math.min(width / 980, height / 760);
+  const orbitScale = Math.min(width / 1400, height / 820);
 
   solarCtx.clearRect(0, 0, width, height);
   solarCtx.fillStyle = "#050908";

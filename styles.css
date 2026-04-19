@@ -52,10 +52,8 @@ button {
   position: relative;
   min-height: 100vh;
   overflow: hidden;
-  display: grid;
-  place-items: center;
   background:
-    radial-gradient(circle at 18% 50%, rgba(230, 195, 92, 0.18), transparent 22%),
+    radial-gradient(circle at 50% 56%, rgba(230, 195, 92, 0.12), transparent 28%),
     linear-gradient(135deg, #050908 0%, #07110f 45%, #0b1517 100%);
   border-bottom: 1px solid var(--line);
 }
@@ -69,16 +67,23 @@ button {
 }
 
 .solar-copy {
-  position: relative;
+  position: absolute;
+  top: 24px;
+  left: clamp(16px, 4vw, 56px);
   z-index: 2;
-  width: min(760px, calc(100% - 32px));
-  justify-self: start;
-  margin-left: clamp(16px, 6vw, 88px);
+  width: min(560px, calc(100% - 32px));
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  background: rgba(8, 12, 11, 0.58);
+  padding: 14px 16px;
   pointer-events: none;
+  backdrop-filter: blur(10px);
 }
 
 .solar-copy h1 {
-  max-width: 720px;
+  max-width: 520px;
+  font-size: clamp(1.45rem, 3.6vw, 2.8rem);
+  line-height: 1.04;
 }
 
 .solar-copy p:last-child {
@@ -528,8 +533,9 @@ h2 {
   }
 
   .solar-copy {
-    align-self: start;
-    margin: 84px 16px 0;
+    top: 16px;
+    left: 16px;
+    padding: 12px;
   }
 
   .topbar-actions {
